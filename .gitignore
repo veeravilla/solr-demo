@@ -1,0 +1,7 @@
+.DS_Store
+cartridge.zip
+target
+.settings/*
+!.settings/.jsdtscope
+.project
+.classpath

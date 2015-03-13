@@ -1,0 +1,2 @@
+{"matchedCarebundle":{"id":"$response.responseHeader.params.q","carebundle":"","description":"","cbtype":""},"related":[#foreach($doc in $response.results)#doc($doc)#comma($response.results)#end]}
+

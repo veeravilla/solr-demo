@@ -1,0 +1,4 @@
+{#if(!$response.error)"suggestions":[#foreach($t in $response.response.suggest.default)
+#foreach($s in $t.value.suggestions)
+{"phrase":"$s.term.replace('<b>','').replace('</b>','')","highlighted":"$s.term","href":"#url_for_solr/select/v1?q=%22$esc.url($s.term.replace('<b>','').replace('</b>',''))%22"}#comma($t.value.suggestions)
+#end#end],"conditions":[#foreach($t in $response.response.suggest.conditions)#foreach($s in $t.value.suggestions){"name":"$s.term.replace('<b>','').replace('</b>','')","highlighted":"$s.term","href":"#navigator_url("conditions",$s.term.replace('<b>','').replace('</b>',''))"}#comma($t.value.suggestions)#end#end]#end}

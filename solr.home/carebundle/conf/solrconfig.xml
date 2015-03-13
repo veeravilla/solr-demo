@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	You under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+<config>
+
+    <!-- Controls what version of Lucene various components of Solr adhere to. 
+		Generally, you want to use the latest version to get all bug fixes and improvements. 
+		It is highly recommended that you fully re-index after changing this setting 
+		as it can affect both how text is indexed and queried. -->
+    <luceneMatchVersion>4.10.0</luceneMatchVersion>
+
+    <!-- lib directives can be used to instruct Solr to load an Jars identified 
+		and use them to resolve any "plugins" specified in your solrconfig.xml or 
+		schema.xml (ie: Analyzers, Request Handlers, etc...). All directories and 
+		paths are resolved relative to the instanceDir. If a "./lib" directory exists 
+		in your instanceDir, all files found in it are included as if you had used 
+		the following syntax... <lib dir="./lib" /> -->
+    <!-- A dir option by itself adds any files found in the directory to the 
+		classpath, this is useful for including all jars in a directory. -->
+    <lib dir="../../contrib/extraction/lib" />
+    <!-- When a regex is specified in addition to a directory, only the files 
+		in that directory which completely match the regex (anchored on both ends) 
+		will be included. -->
+    <lib dir="../../dist/" regex="apache-solr-cell-\d.*\.jar" />
+    <lib dir="../../dist/" regex="apache-solr-clustering-\d.*\.jar" />
+    <!-- If a dir option (with or without a regex) is used and nothing is found 
+		that matches, it will be ignored -->
+    <lib dir="../../contrib/clustering/lib/downloads/" />
+    <lib dir="../../contrib/clustering/lib/" />
+    <lib dir="/total/crap/dir/ignored" />
+    <!-- an exact path can be used to specify a specific file. This will cause 
+		a serious error to be logged if it can't be loaded. <lib path="../a-jar-that-does-not-exist.jar" 
+		/> -->
+    <!-- NLP lib path-->
+    <lib dir="../../../lib" />
+
+    <lib dir="../lib" />
+    <lib dir="lib" />
+
+
+    <indexConfig>
+        <!-- Values here affect all index writers and act as a default unless overridden. -->
+        <useCompoundFile>false</useCompoundFile>
+        <mergeFactor>10</mergeFactor>
+        <ramBufferSizeMB>10</ramBufferSizeMB>
+        <maxMergeDocs>2147483647</maxMergeDocs>
+        <maxFieldLength>10000</maxFieldLength>
+        <writeLockTimeout>1000</writeLockTimeout>
+        <commitLockTimeout>10000</commitLockTimeout>
+        <!-- This option specifies which Lucene LockFactory implementation to use. 
+			single = SingleInstanceLockFactory - suggested for a read-only index or when 
+			there is no possibility of another process trying to modify the index. native 
+			= NativeFSLockFactory - uses OS native file locking. Do not use when multiple 
+			solr webapps in the same JVM are attempting to share a single index. simple 
+			= SimpleFSLockFactory - uses a plain file for locking (For backwards compatibility 
+			with Solr 1.2, 'simple' is the default if not specified.) More details on 
+			the nuances of each LockFactory... http://wiki.apache.org/lucene-java/AvailableLockFactories -->
+        <lockType>native</lockType>
+        <!-- If true, unlock any held write or commit locks on startup. This defeats 
+			the locking mechanism that allows multiple processes to safely access a lucene 
+			index, and should be used with care. This is not needed if lock type is 'none' 
+			or 'single' -->
+        <unlockOnStartup>false</unlockOnStartup>
+        <deletionPolicy class="solr.SolrDeletionPolicy" />
+    </indexConfig>
+
+    <jmx/>
+
+    <!-- the default high-performance update handler -->
+    <updateHandler class="solr.DirectUpdateHandler2">
+
+        <!-- A prefix of "solr." for class names is an alias that causes solr to 
+			search appropriate packages, including org.apache.solr.(search|update|request|core|analysis) -->
+
+        <!-- Limit the number of deletions Solr will buffer during doc updating. 
+			Setting this lower can help bound memory use during indexing. -->
+        <maxPendingDeletes>100000</maxPendingDeletes>
+
+        <!-- AutoCommit
+
+         Perform a <commit/> automatically under certain conditions.
+         Instead of enabling autoCommit, consider using "commitWithin"
+         when adding documents. 
+
+         http://wiki.apache.org/solr/UpdateXmlMessages
+
+         maxDocs - Maximum number of documents to add since the last
+                   commit before automatically triggering a new commit.
+
+         maxTime - Maximum amount of time that is allowed to pass
+                   since a document was added before automaticly
+                   triggering a new commit. 
+      -->
+
+        <autoCommit>
+            <maxTime>15000</maxTime>
+            <openSearcher>false</openSearcher>
+            <maxDocs>50000</maxDocs>
+        </autoCommit>
+
+        <!-- SoftAutoCommit
+
+       Perform a 'soft' commit automatically under certain conditions.
+       This commit avoids ensuring that data is synched to disk.
+
+       maxDocs - Maximum number of documents to add since the last
+                 soft commit before automaticly triggering a new soft commit.
+
+       maxTime - Maximum amount of time in ms that is allowed to pass
+                 since a document was added before automaticly
+                 triggering a new soft commit. 
+      -->
+
+        <!--
+        <autoSoftCommit> 
+          <maxDocs>100</maxDocs>
+          <maxTime>1000</maxTime> 
+        </autoSoftCommit>
+        -->
+
+        <!-- The RunExecutableListener executes an external command. exe - the 
+			name of the executable to run dir - dir to use as the current working directory. 
+			default="." wait - the calling thread waits until the executable returns. 
+			default="true" args - the arguments to pass to the program. default=nothing 
+			env - environment variables to set. default=nothing -->
+        <!-- A postCommit event is fired after every commit or optimize command 
+			<listener event="postCommit" class="solr.RunExecutableListener"> <str name="exe">solr/bin/snapshooter</str> 
+			<str name="dir">.</str> <bool name="wait">true</bool> <arr name="args"> <str>arg1</str> 
+			<str>arg2</str> </arr> <arr name="env"> <str>MYVAR=val1</str> </arr> </listener> -->
+        <!-- A postOptimize event is fired only after every optimize command, useful 
+			in conjunction with index distribution to only distribute optimized indicies 
+			<listener event="postOptimize" class="solr.RunExecutableListener"> <str name="exe">snapshooter</str> 
+			<str name="dir">solr/bin</str> <bool name="wait">true</bool> </listener> -->
+
+        <!-- Enables a transaction log, currently used for real-time get.
+	         "dir" - the target directory for transaction logs, defaults to the
+	            solr data directory.  -->
+        <updateLog>
+            <str name="dir">${solr.data.dir:}</str>
+        </updateLog>
+        <autoSoftCommit>
+            <maxDocs>10000</maxDocs>
+        </autoSoftCommit>
+    </updateHandler>
+
+    <directoryFactory class="${solr.directoryFactory:solr.StandardDirectoryFactory}" name="DirectoryFactory" />
+
+
+    <query>
+        <!-- Maximum number of clauses in a boolean query... can affect range or 
+			prefix queries that expand to big boolean queries. An exception is thrown 
+			if exceeded. -->
+        <maxBooleanClauses>1024</maxBooleanClauses>
+
+
+        <!-- Cache used by SolrIndexSearcher for filters (DocSets), unordered sets 
+			of *all* documents that match a query. When a new searcher is opened, its 
+			caches may be prepopulated or "autowarmed" using data from caches in the 
+			old searcher. autowarmCount is the number of items to prepopulate. For LRUCache, 
+			the autowarmed items will be the most recently accessed items. Parameters: 
+			class - the SolrCache implementation (currently only LRUCache) size - the 
+			maximum number of entries in the cache initialSize - the initial capacity 
+			(number of entries) of the cache. (seel java.util.HashMap) autowarmCount 
+			- the number of entries to prepopulate from and old cache. -->
+        <filterCache autowarmCount="256" class="solr.LRUCache" initialSize="512" size="512" />
+
+        <!-- queryResultCache caches results of searches - ordered lists of document 
+			ids (DocList) based on a query, a sort, and the range of documents requested. -->
+        <queryResultCache autowarmCount="128" class="solr.LRUCache" initialSize="256" size="256" />
+
+        <!-- documentCache caches Lucene Document objects (the stored fields for 
+			each document). Since Lucene internal document ids are transient, this cache 
+			will not be autowarmed. -->
+        <documentCache autowarmCount="0" class="solr.LRUCache" initialSize="100" size="100" />
+
+        <!-- If true, stored fields that are not requested will be loaded lazily. 
+			This can result in a significant speed improvement if the usual case is to 
+			not load all stored fields, especially if the skipped fields are large compressed 
+			text fields. -->
+        <enableLazyFieldLoading>true</enableLazyFieldLoading>
+
+        <!-- Example of a generic cache. These caches may be accessed by name through 
+			SolrIndexSearcher.getCache(),cacheLookup(), and cacheInsert(). The purpose 
+			is to enable easy caching of user/application level data. The regenerator 
+			argument should be specified as an implementation of solr.search.CacheRegenerator 
+			if autowarming is desired. -->
+        <!-- <cache name="myUserCache" class="solr.LRUCache" size="4096" initialSize="1024" 
+			autowarmCount="1024" regenerator="org.mycompany.mypackage.MyRegenerator" 
+			/> -->
+
+        <!-- An optimization that attempts to use a filter to satisfy a search. 
+			If the requested sort does not include score, then the filterCache will be 
+			checked for a filter matching the query. If found, the filter will be used 
+			as the source of document ids, and then the sort will be applied to that. 
+			<useFilterForSortedQuery>true</useFilterForSortedQuery> -->
+
+        <!-- An optimization for use with the queryResultCache. When a search is 
+			requested, a superset of the requested number of document ids are collected. 
+			For example, if a search for a particular query requests matching documents 
+			10 through 19, and queryWindowSize is 50, then documents 0 through 49 will 
+			be collected and cached. Any further requests in that range can be satisfied 
+			via the cache. -->
+        <queryResultWindowSize>20</queryResultWindowSize>
+
+        <!-- Maximum number of documents to cache for any entry in the queryResultCache. -->
+        <queryResultMaxDocsCached>100</queryResultMaxDocsCached>
+
+        <!-- This entry enables an int hash representation for filters (DocSets) 
+			when the number of items in the set is less than maxSize. For smaller sets, 
+			this representation is more memory efficient, more efficient to iterate over, 
+			and faster to take intersections. -->
+        <HashDocSet loadFactor="0.75" maxSize="3000" />
+
+        <!-- a newSearcher event is fired whenever a new searcher is being prepared 
+			and there is a current searcher handling requests (aka registered). -->
+        <!-- QuerySenderListener takes an array of NamedList and executes a local 
+			query request for each NamedList in sequence. -->
+        <!-- <listener event="newSearcher" class="solr.QuerySenderListener"> <arr 
+			name="queries"> <lst> <str name="q">solr</str> <str name="start">0</str> 
+			<str name="rows">10</str> </lst> <lst> <str name="q">rocks</str> <str name="start">0</str> 
+			<str name="rows">10</str> </lst> </arr> </listener> -->
+
+        <!-- a firstSearcher event is fired whenever a new searcher is being prepared 
+			but there is no current registered searcher to handle requests or to gain 
+			autowarming data from. -->
+        <!-- <listener event="firstSearcher" class="solr.QuerySenderListener"> 
+			<arr name="queries"> <lst> <str name="q">fast_warm</str> <str name="start">0</str> 
+			<str name="rows">10</str> </lst> </arr> </listener> -->
+
+        <!-- If a search request comes in and there is no current registered searcher, 
+			then immediately register the still warming searcher and use it. If "false" 
+			then all requests will block until the first searcher is done warming. -->
+        <useColdSearcher>false</useColdSearcher>
+
+        <!-- Maximum number of searchers that may be warming in the background 
+			concurrently. An error is returned if this limit is exceeded. Recommend 1-2 
+			for read-only slaves, higher for masters w/o cache warming. -->
+        <maxWarmingSearchers>4</maxWarmingSearchers>
+
+    </query>
+
+    <!-- Let the dispatch filter handler /select?qt=XXX handleSelect=true will 
+		use consistent error handling for /select and /update handleSelect=false 
+		will use solr1.1 style error formatting -->
+    <requestDispatcher handleSelect="true">
+        <!--Make sure your system has some authentication before enabling remote 
+			streaming! -->
+        <requestParsers enableRemoteStreaming="true" multipartUploadLimitInKB="2048" />
+        <httpCaching never304="false" lastModFrom="openTime" etagSeed="Solr">
+            <cacheControl>max-age=86400, public</cacheControl>
+        </httpCaching>
+    </requestDispatcher>
+
+    <searchComponent class="org.apache.solr.handler.component.FacetComponent" name="facet" />
+
+
+    <!-- requestHandler plugins... incoming queries will be dispatched to the 
+		correct handler based on the path or the qt (query type) param. Names starting 
+		with a '/' are accessed with the a path equal to the registered name. Names 
+		without a leading '/' are accessed with: http://host/app/select?qt=name If 
+		no qt is defined, the requestHandler that declares default="true" will be 
+		used. -->
+    <requestHandler class="solr.StandardRequestHandler" default="true" name="standard">
+        <!-- default values for query parameters -->
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+
+        </lst>
+        <!-- Note: to support distrib spellchecking -->
+        <!--arr name="last-components">
+          <str>spellcheck</str>
+        </arr-->
+    </requestHandler>
+
+    <searchComponent name="elevator" class="org.apache.solr.handler.component.QueryElevationComponent">
+        <str name="queryFieldType">text_phrase</str>
+        <str name="config-file">carebundle-ranking.xml</str>
+    </searchComponent>
+
+    <!-- Suggest components -->
+    <searchComponent class="solr.SuggestComponent" name="suggester">
+        <lst name="suggester">
+            <str name="name">default</str>
+            <str name="lookupImpl">org.apache.solr.spelling.suggest.fst.BlendedInfixLookupFactory</str>
+            <str name="dictionaryImpl">HighFrequencyDictionaryFactory</str>
+            <str name="indexPath">keywords</str>
+            <str name="buildOnCommit">true</str>
+            <str name="field">keywords</str>
+            <str name="weightField">keywords</str>
+            <str name="payloadField">keywords</str>
+
+            <!-- Suggester properties -->
+            <str name="blenderType">linear</str>
+            <str name="suggestAnalyzerFieldType">text_infix</str>
+        </lst>
+        <lst name="suggester">
+            <str name="name">conditions</str>
+            <str name="lookupImpl">org.apache.solr.spelling.suggest.fst.BlendedInfixLookupFactory</str>
+            <str name="dictionaryImpl">HighFrequencyDictionaryFactory</str>
+            <str name="indexPath">conditions</str>
+            <str name="buildOnCommit">true</str>
+            <str name="field">conditions</str>
+            <str name="weightField">conditions</str>
+            <str name="payloadField">conditions</str>
+
+            <!-- Suggester properties -->
+            <str name="blenderType">linear</str>
+            <str name="suggestAnalyzerFieldType">text_infix</str>
+        </lst>
+    </searchComponent>
+
+    <requestHandler class="solr.SearchHandler" name="/suggestions/v1">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <str name="suggest">true</str>
+            <str name="suggest.dictionary">default</str>
+            <str name="suggest.dictionary">conditions</str>
+            <str name="suggest.count">10</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">suggestions.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+        <arr name="components">
+            <str>suggester</str>
+        </arr>
+    </requestHandler>
+
+    <requestHandler class="solr.SearchHandler" name="/select/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="fl">id</str>
+            <str name="fl">carebundle</str>
+            <str name="fl">description</str>
+            <str name="fl">cbtype</str>
+            <str name="qf">keywords</str>
+            <str name="rows">20</str>
+            <str name="facet">true</str>
+            <str name="facet.field">specialties</str>
+            <str name="facet.field">conditions</str>
+            <str name="facet.mincount">1</str>
+            <str name="facet.limit">20</str>
+            <str name="facet.method">enum</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">select.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.SearchHandler" name="/conditions/glossary/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="q">*:*</str>
+            <str name="qf">carebundle</str>
+            <str name="rows">0</str>
+            <str name="facet">true</str>
+            <str name="facet.field">conditions</str>
+            <str name="facet.mincount">1</str>
+            <str name="facet.sort">index</str>
+            <str name="facet.limit">-1</str>
+            <str name="facet.method">enum</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">conditions.glossary.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.SearchHandler" name="/conditions/glossary/prefix/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="q">*:*</str>
+            <str name="qf">conditions</str>
+            <str name="rows">0</str>
+            <str name="facet">true</str>
+            <str name="facet.field">conditions_prefix</str>
+            <str name="facet.mincount">1</str>
+            <str name="facet.sort">index</str>
+            <str name="facet.limit">-1</str>
+            <str name="facet.method">enum</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">conditions.glossary.prefix.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+    </requestHandler>
+
+
+    <requestHandler class="solr.SearchHandler" name="/glossary/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="fl">id</str>
+            <str name="fl">carebundle</str>
+            <str name="fl">description</str>
+            <str name="fl">cbtype</str>
+            <str name="q">*</str>
+            <str name="rows">999</str>
+            <str name="qf">carebundle_prefix</str>
+            <str name="group">true</str>
+            <str name="group.field">carebundle_prefix</str>
+            <str name="group.limit">999</str>
+            <str name="sort">carebundle asc</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">glossary.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.SearchHandler" name="/glossary/prefix/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="q">*:*</str>
+            <str name="qf">carebundle</str>
+            <str name="rows">0</str>
+            <str name="facet">true</str>
+            <str name="facet.field">carebundle_prefix</str>
+            <str name="facet.mincount">1</str>
+            <str name="facet.sort">index</str>
+            <str name="facet.limit">-1</str>
+            <str name="facet.method">enum</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">glossary.prefix.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.SearchHandler" name="/related/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="echoParams">explicit</str>
+            <str name="fl">id</str>
+            <str name="fl">carebundle</str>
+            <str name="fl">description</str>
+            <str name="fl">cbtype</str>
+            <str name="mlt.fl">relatedcarebundle</str>
+            <str name="qf">relatedcarebundle</str>
+            <str name="rows">5</str>
+            <str name="mlt">false</str>
+            <str name="mlt.count">5</str>
+            <str name="mlt.boost">true</str>
+            <str name="mlt.mintf">1</str>
+            <str name="mlt.mindf">1</str>
+            <str name="mlt.minwl">3</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">related.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.SearchHandler" name="/search/v1">
+        <lst name="defaults">
+            <str name="defType">edismax</str>
+            <str name="mm">2&lt;2 3&lt;50% 7&lt;40%</str> <!-- 1-2:all, 3:2, 4:2, 5:2, 6:3, 7:3, 8:3, 9:3, 10:4 -->
+            <str name="fl">id</str>
+            <str name="fl">carebundle</str>
+            <str name="fl">description</str>
+            <str name="fl">cbtype</str>
+            <str name="qf"> 
+                carebundle_infix^70 
+                keywords_infix^60 
+                carebundle_ngram^50 
+                keywords_ngram^30 
+                conditions_ngram^20 
+                keywords_phon^5 
+                conditions_phon^5
+            </str>
+            <str name="pf">
+                carebundle_phrase^70 
+                keywords_phrase^70 
+                carebundle_edge^50 
+                keywords_edge^30 
+                conditions_edge^20
+            </str>
+            <str name="rows">20</str>
+            <str name="facet">true</str>
+            <str name="facet.field">specialties</str>
+            <str name="facet.field">conditions</str>
+            <str name="facet.mincount">1</str>
+            <str name="facet.limit">20</str>
+            <str name="facet.method">enum</str>
+            <str name="wt">velocity</str>
+            <str name="v.template">select.v1</str>
+            <str name="v.contentType">application/json</str>
+        </lst>
+        <arr name="last-components">
+            <str>elevator</str>
+        </arr>
+    </requestHandler>
+
+    <requestHandler name="/replication" class="solr.ReplicationHandler" startup="lazy" />
+
+    <!-- realtime get handler, guaranteed to return the latest stored fields of
+       any document, without the need to commit or open a new searcher.  The
+       current implementation relies on the updateLog feature being enabled. -->
+    <requestHandler name="/get" class="solr.RealTimeGetHandler">
+        <lst name="defaults">
+            <str name="omitHeader">true</str>
+            <str name="wt">json</str>
+            <str name="indent">true</str>
+        </lst>
+    </requestHandler>
+
+    <!-- Mock UI home page -->
+    <requestHandler name="/home" class="solr.SearchHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+
+            <!-- VelocityResponseWriter settings -->
+            <str name="wt">velocity</str>
+            <str name="v.template">browse</str>
+            <str name="v.layout">layout</str>
+            <str name="title">Care Bundle Search</str>
+
+            <!-- Query settings -->
+            <str name="q">*:*</str>
+            <str name="defType">edismax</str>
+            <str name="fl">id</str>
+            <str name="fl">carebundle</str>
+            <str name="fl">conditions</str>
+            <str name="fl">cbtype</str>
+            <str name="fl">specialties</str>
+            <str name="qf">conditions_ngram^50 specialties_ngram^50 conditions_bmpm^10 specialties_bmpm^10</str>
+            <str name="pf">conditions_edge^50.0 specialties_edge^50.0</str>
+            <str name="rows">5</str>
+            <str name="facet">true</str>
+            <str name="facet.field">specialties</str>
+            <str name="facet.field">{!key=conditions}conditions</str>
+            <str name="facet.mincount">1</str>
+            <str name="facet.limit">5</str>
+        </lst>
+    </requestHandler>
+
+    <!-- Field Analysis Request Handler
+
+       RequestHandler that provides much the same functionality as
+       analysis.jsp. Provides the ability to specify multiple field
+       types and field names in the same request and outputs
+       index-time and query-time analysis for each of them.
+
+       Request parameters are:
+       analysis.fieldname - field name whose analyzers are to be used
+
+       analysis.fieldtype - field type whose analyzers are to be used
+       analysis.fieldvalue - text for index-time analysis
+       q (or analysis.q) - text for query time analysis
+       analysis.showmatch (true|false) - When set to true and when
+           query analysis is performed, the produced tokens of the
+           field value analysis will be marked as "matched" for every
+           token that is produces by the query analysis
+   -->
+    <requestHandler class="solr.FieldAnalysisRequestHandler" name="/analysis/field" startup="lazy" />
+
+
+    <!-- Document Analysis Handler
+
+       http://wiki.apache.org/solr/AnalysisRequestHandler
+
+       An analysis handler that provides a breakdown of the analysis
+       process of provided documents. This handler expects a (single)
+       content stream with the following format:
+
+       <docs>
+         <doc>
+           <field name="id">1</field>
+           <field name="name">The Name</field>
+           <field name="text">The Text Value</field>
+         </doc>
+         <doc>...</doc>
+         <doc>...</doc>
+         ...
+       </docs>
+
+    Note: Each document must contain a field which serves as the
+    unique key. This key is used in the returned response to associate
+    an analysis breakdown to the analyzed document.
+
+    Like the FieldAnalysisRequestHandler, this handler also supports
+    query analysis by sending either an "analysis.query" or "q"
+    request parameter that holds the query text to be analyzed. It
+    also supports the "analysis.showmatch" parameter which when set to
+    true, all field tokens that match the query tokens will be marked
+    as a "match". 
+  -->
+    <requestHandler class="solr.DocumentAnalysisRequestHandler" name="/analysis/document" startup="lazy" />
+
+
+    <requestHandler class="solr.admin.AdminHandlers" name="/admin/" />
+
+    <!-- Terms Component http://wiki.apache.org/solr/TermsComponent A component 
+		to return terms and document frequency of those terms -->
+    <searchComponent class="solr.TermsComponent" name="terms" />
+
+    <requestHandler class="solr.SearchHandler" name="/terms" startup="lazy">
+        <lst name="defaults">
+            <bool name="terms">true</bool>
+        </lst>
+        <arr name="components">
+            <str>terms</str>
+        </arr>
+    </requestHandler>
+
+    <queryConverter class="org.apache.solr.spelling.SpellingQueryConverter" name="queryConverter" />
+
+
+
+    <!-- queryResponseWriter plugins... query responses will be written using 
+		the writer specified by the 'wt' request parameter matching the name of a 
+		registered writer. The "default" writer is the default and will be used if 
+		'wt' is not specified in the request. XMLResponseWriter will be used if nothing 
+		is specified here. The json, python, and ruby writers are also available 
+		by default. <queryResponseWriter name="xml" class="org.apache.solr.request.XMLResponseWriter" 
+		default="true"/> <queryResponseWriter name="json" class="org.apache.solr.request.JSONResponseWriter"/> 
+		<queryResponseWriter name="python" class="org.apache.solr.request.PythonResponseWriter"/> 
+		<queryResponseWriter name="ruby" class="org.apache.solr.request.RubyResponseWriter"/> 
+		<queryResponseWriter name="php" class="org.apache.solr.request.PHPResponseWriter"/> 
+		<queryResponseWriter name="phps" class="org.apache.solr.request.PHPSerializedResponseWriter"/> 
+		<queryResponseWriter name="custom" class="com.example.MyResponseWriter"/> -->
+
+    <queryResponseWriter name="velocity" class="solr.VelocityResponseWriter" startup="lazy" />
+
+    <requestHandler class="org.apache.solr.handler.admin.ShowFileRequestHandler" name="/admin/file" />
+
+    <!-- Update Request Handler.  
+       
+       http://wiki.apache.org/solr/UpdateXmlMessages
+
+       The canonical Request Handler for Modifying the Index through
+       commands specified using XML, JSON, CSV, or JAVABIN
+
+       Note: Since solr1.1 requestHandlers requires a valid content
+       type header if posted in the body. For example, curl now
+       requires: -H 'Content-type:text/xml; charset=utf-8'
+       
+       To override the request content type and force a specific 
+       Content-type, use the request parameter: 
+         ?update.contentType=text/csv
+       
+       This handler will pick a response format to match the input
+       if the 'wt' parameter is not explicit
+    -->
+
+    <!--requestHandler name="/update" class="solr.UpdateRequestHandler">
+  </requestHandler-->
+
+    <!--requestHandler name="/update/csv" class="solr.CSVRequestHandler">
+        <lst name="defaults">
+            <str name="stream.contentType">application/csv</str>
+            <str name="update.chain">hce-update-chain</str>
+        </lst>
+    </requestHandler-->
+
+    <!--updateRequestProcessorChain default="true" name="hce-update-chain">
+        <processor class="org.apache.solr.update.processor.SignatureUpdateProcessorFactory">
+            <bool name="enabled">true</bool>
+            <bool name="overwriteDupes">true</bool>
+            <str name="signatureField">id</str>
+            <str name="fields">keyword</str>
+            <str name="signatureClass">org.apache.solr.update.processor.Lookup3Signature</str>
+        </processor>
+        <processor class="solr.LogUpdateProcessorFactory" />
+        <processor class="solr.RunUpdateProcessorFactory" />
+    </updateRequestProcessorChain-->
+
+</config>

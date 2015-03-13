@@ -1,0 +1,3 @@
+#macro(prefix_url $value)#url_for_solr/conditions/glossary/v1?facet.prefix=$esc.url($value)#end
+{"glossary":[#foreach($field in $response.facetFields)#foreach($prefix in $field.values)
+{"prefix":"$prefix.name","count":"$prefix.count","href":"#prefix_url($prefix.name)"}#comma($field.values)#end#end]}

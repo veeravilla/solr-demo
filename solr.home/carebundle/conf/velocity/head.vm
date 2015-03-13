@@ -1,0 +1,87 @@
+#**
+ *  Provide elements for the <head> section of the HTML document
+ *#
+
+  ## An example of using an arbitrary request parameter
+  <title>#param('title')</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+  <script type="text/javascript" src="#{url_for_solr}/admin/file?file=/velocity/jquery-1.11.1.min.js&contentType=text/javascript"></script>
+  <link rel="stylesheet" type="text/css" href="#{url_for_solr}/admin/file?file=/velocity/main.css&contentType=text/css"/>
+  <link rel="stylesheet" href="#{url_for_solr}/admin/file?file=/velocity/jquery-ui.min.css&contentType=text/css" type="text/css" />
+  <script type="text/javascript" src="#{url_for_solr}/admin/file?file=/velocity/jquery-ui.min.js&contentType=text/javascript"></script>
+
+<style type="text/css">
+    .ui-autocomplete.ui-menu { 
+        background-color:white;
+        border-width : 1px;
+        border-style : solid;
+        
+    }
+    .ui-state-focus  {
+        color:White;
+        background:Grey;
+        outline:none;
+    }
+</style>
+
+    <script>
+    $(function(){
+      $("\#q").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url:'/solr/carebundle/suggestions/v1',
+                    dataType:'json',
+                    data:{
+                        q:request.term
+                    },
+                    success: function(data) {
+                        var dataset = [];
+                        var size = data.suggestions.length;
+                        if (size > 5) {
+                            size = 5;
+                        }
+                        for (var i = 0; i < size; i++)  {
+                            var datum = {};
+                            datum.value = data.suggestions[i].href;
+                            datum.label = data.suggestions[i].phrase;
+                            dataset.push(datum);
+                        }
+                        response(dataset);
+                    }
+                });
+            },
+            minLength: 2,
+            autoFocus: false,
+            focus: function(event, ui) {
+                event.preventDefault();
+            },
+            select: function(event, ui) {
+                event.preventDefault();
+                window.location.href= ui.item.value.replace('/select/v1','/home') + '&qf=conditions&pf=conditions';
+            }
+        });
+      
+    });
+
+    function showRelated(id) {
+        $("#related").empty();
+        $.ajax({
+            url:'/solr/carebundle/related/v1',
+            dataType:'json',
+            data: {
+                q:id
+            },
+            success: function(data) {
+                for (var i = 0; i < data.related.length; i++) {
+                    $("#related").append("<li><a href='" + 
+                    data.related[i].id + 
+                    "' target='_blank'>" + 
+                    data.related[i].id + "&nbsp;" + data.related[i].carebundle + 
+                    "</a></li>");
+                }
+            }
+        });
+        return false;
+    }
+    </script>

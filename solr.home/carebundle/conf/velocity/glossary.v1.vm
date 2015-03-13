@@ -1,0 +1,3 @@
+{"glossary":[#foreach($prefix in $response.response.grouped.carebundle_prefix.groups){"prefix":"$prefix.groupValue", "count":"$prefix.doclist.numFound","carebundles":[#foreach($doc in $prefix.doclist)
+#doc($doc)#comma($prefix.doclist)#end]}#comma($response.response.grouped.carebundle_prefix.groups)#end
+#foreach($doc in $response.results)#doc($doc)#comma($response.results)#end]}

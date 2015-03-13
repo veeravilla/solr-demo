@@ -1,0 +1,20 @@
+#**
+ *  Paging and Statistics at top of results
+ *#
+
+## Usually rendered in pagination div tag
+
+## Grouped Results / Not Paginated
+#if($response.response.get('grouped'))
+
+  <span>
+    <span class="results-found">
+      $response.response.get('grouped').size() group(s)
+    </span>
+    found in ${response.responseHeader.QTime} ms
+  </span>
+
+## Regular Results / Use Paging Links if needed
+#else
+    <h2>Care Bundles</h2>
+#end   ## end else non-grouped results, normal pagination

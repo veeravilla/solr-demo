@@ -1,0 +1,4 @@
+#foreach($t in $response.response.suggest.default)
+#foreach($s in $t.value.suggestions)
+$s.term
+#end#end

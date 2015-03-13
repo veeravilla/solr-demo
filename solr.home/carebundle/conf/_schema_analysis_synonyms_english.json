@@ -1,0 +1,15 @@
+{
+  "initArgs":{
+    "ignoreCase":true,
+    "format":"solr",
+    "expand":true
+  },
+  "managedMap":{
+    "Back":["Spinal","Posture"],
+    "Steroid":["Corticosteroid","Glucocorticoids"],
+    "Cancer":["Tumor","Carcinoma","Malignancy","Neoplasms"],
+    "Childbirth":["Labor","Contractions"],
+    "Abdomen":["Belly","Tummy","Gut","Guts","Stomach"],
+    "X-ray":["Radiograph", "Radiogram", "Image","Picture","Photograph","Roentgenogram"]
+  }
+}

@@ -1,0 +1,2 @@
+{"carebundlesFound":$response.results.numFound,"start":$response.results.start,"carebundles":[#foreach($doc in $response.results)#doc($doc)#comma($response.results)#end],#foreach($field in $response.facetFields)"$field.name":[#foreach($facet in $field.values){"name":"$facet.name","href":"#navigator_url($field.name,$facet.name)"}#comma($field.values)#end]#comma($response.facetFields)#end}
+

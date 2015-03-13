@@ -1,0 +1,4 @@
+#macro(condition_url $field $value)#url_for_solr/search/v1?q=*:*&fq=#if($value!=$null)$esc.url($field):%22$esc.url($value)%22#else-$esc.url($field):[*+TO+*]#end#end
+{"glossary":{#foreach($field in $response.facetFields)
+"$field.name":[#foreach($condition in $field.values)
+{"condition":"$condition.name","count":"$condition.count","href":"#condition_url($field.name,$condition.name)"}#comma($field.values)#end#end]#comma($response.facetFileds)}}
