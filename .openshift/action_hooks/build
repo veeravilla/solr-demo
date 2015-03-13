@@ -5,7 +5,7 @@ ls -l
 pwd
 if [ ! -d $OPENSHIFT_DATA_DIR/solr.home ]; then
   # Get latest Apache Solr binary package
-  wget -c --timeout=0 https://apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz && tar zxf solr-$SOLR_VERSION.tgz;
+  wget -c --timeout=0 http://apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz && tar zxf solr-$SOLR_VERSION.tgz;
   
   # Create Solr Home directory structure
   mkdir -p $OPENSHIFT_DATA_DIR/solr.home;
