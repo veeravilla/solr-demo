@@ -6,7 +6,7 @@ if [ ! -d $OPENSHIFT_DATA_DIR/solr.home ]; then
   # Get latest Apache Solr binary package
   wget -c --timeout=0 http://apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz && tar zxf solr-$SOLR_VERSION.tgz;
   
-  # Create Solr Home directory structure
+  # Create Solr Home directory structure test
   mkdir -p $OPENSHIFT_DATA_DIR/solr.home;
   mkdir -p $OPENSHIFT_DATA_DIR/solr.home/lib;
   mkdir -p $OPENSHIFT_DATA_DIR/solr.home/carebundle/lib;
